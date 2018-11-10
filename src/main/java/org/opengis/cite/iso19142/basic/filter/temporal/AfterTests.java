@@ -1,6 +1,11 @@
 package org.opengis.cite.iso19142.basic.filter.temporal;
 
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -9,6 +14,8 @@ import javax.xml.transform.dom.DOMSource;
 import org.apache.xerces.xs.XSComplexTypeDefinition;
 import org.apache.xerces.xs.XSElementDeclaration;
 import org.apache.xerces.xs.XSTypeDefinition;
+import org.geotoolkit.temporal.factory.DefaultTemporalFactory;
+import org.geotoolkit.temporal.object.DefaultPosition;
 import org.opengis.cite.geomatics.gml.GmlUtils;
 import org.opengis.cite.geomatics.time.TemporalUtils;
 import org.opengis.cite.iso19142.ErrorMessage;
@@ -18,10 +25,7 @@ import org.opengis.cite.iso19142.basic.filter.QueryFilterFixture;
 import org.opengis.cite.iso19142.util.ServiceMetadataUtils;
 import org.opengis.cite.iso19142.util.TimeUtils;
 import org.opengis.cite.iso19142.util.WFSMessage;
-import org.opengis.temporal.Instant;
-import org.opengis.temporal.Period;
-import org.opengis.temporal.RelativePosition;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.*;
 import org.testng.Assert;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
@@ -166,7 +170,7 @@ public class AfterTests extends AbstractTemporalTest {
     void assertAfter(List<Node> temporalNodes, XSElementDeclaration propertyDecl, Document gmlTimeLiteral) {
         Assert.assertFalse(temporalNodes.isEmpty(),
                 String.format("No temporal values found in results: property is %s.", propertyDecl));
-        TemporalGeometricPrimitive t2 = GmlUtils.gmlToTemporalGeometricPrimitive(gmlTimeLiteral.getDocumentElement());
+        TemporalGeometricPrimitive t2 = gmlToTemporalGeometricPrimitive(gmlTimeLiteral.getDocumentElement());
         XSTypeDefinition typeDef = propertyDecl.getTypeDefinition();
         for (Node timeNode : temporalNodes) {
             TemporalGeometricPrimitive t1 = null;
@@ -174,9 +178,10 @@ public class AfterTests extends AbstractTemporalTest {
                  || ( (XSComplexTypeDefinition) typeDef ).getContentType() == XSComplexTypeDefinition.CONTENTTYPE_SIMPLE ) {
                 t1 = TemporalQuery.parseTemporalValue(timeNode.getTextContent(), typeDef);
             } else {
-                t1 = GmlUtils.gmlToTemporalGeometricPrimitive((Element) timeNode);
+                t1 = gmlToTemporalGeometricPrimitive((Element) timeNode);
             }
             TemporalUtils.assertTemporalRelation(RelativePosition.AFTER, t1, t2);
         }
     }
+
 }

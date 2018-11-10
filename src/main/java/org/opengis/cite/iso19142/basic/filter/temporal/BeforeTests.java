@@ -8,12 +8,10 @@ import javax.xml.transform.dom.DOMSource;
 import org.apache.xerces.xs.XSComplexTypeDefinition;
 import org.apache.xerces.xs.XSElementDeclaration;
 import org.apache.xerces.xs.XSTypeDefinition;
-import org.opengis.cite.geomatics.gml.GmlUtils;
 import org.opengis.cite.geomatics.time.TemporalUtils;
 import org.opengis.cite.iso19142.ErrorMessage;
 import org.opengis.cite.iso19142.ErrorMessageKeys;
 import org.opengis.cite.iso19142.ProtocolBinding;
-import org.opengis.cite.iso19142.basic.filter.QueryFilterFixture;
 import org.opengis.cite.iso19142.util.ServiceMetadataUtils;
 import org.opengis.cite.iso19142.util.TimeUtils;
 import org.opengis.cite.iso19142.util.WFSMessage;
@@ -102,7 +100,7 @@ public class BeforeTests extends AbstractTemporalTest {
     void assertBefore(List<Node> temporalNodes, XSElementDeclaration propertyDecl, Document gmlTimeLiteral) {
         Assert.assertFalse(temporalNodes.isEmpty(),
                 String.format("No temporal values found in results: property is %s.", propertyDecl));
-        TemporalGeometricPrimitive t2 = GmlUtils.gmlToTemporalGeometricPrimitive(gmlTimeLiteral.getDocumentElement());
+        TemporalGeometricPrimitive t2 = gmlToTemporalGeometricPrimitive(gmlTimeLiteral.getDocumentElement());
         XSTypeDefinition typeDef = propertyDecl.getTypeDefinition();
         for (Node timeNode : temporalNodes) {
             TemporalGeometricPrimitive t1 = null;
@@ -110,7 +108,7 @@ public class BeforeTests extends AbstractTemporalTest {
                 || ( (XSComplexTypeDefinition) typeDef ).getContentType() == XSComplexTypeDefinition.CONTENTTYPE_SIMPLE) {
                 t1 = TemporalQuery.parseTemporalValue(timeNode.getTextContent(), typeDef);
             } else {
-                t1 = GmlUtils.gmlToTemporalGeometricPrimitive((Element) timeNode);
+                t1 = gmlToTemporalGeometricPrimitive((Element) timeNode);
             }
             TemporalUtils.assertTemporalRelation(RelativePosition.BEFORE, t1, t2);
         }

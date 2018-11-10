@@ -191,7 +191,7 @@ public class BasicGetFeatureTests extends BaseFixture {
 				WFS2.NS_URI, WFS2.QUERY_ELEM).item(0);
 		qry.setAttribute(WFS2.SRSNAME_PARAM, crsId);
 		ClientResponse rsp = wfsClient.submitRequest(this.reqEntity,
-				ProtocolBinding.ANY);
+				ProtocolBinding.GET);
 		Assert.assertEquals(rsp.getStatus(),
 				ClientResponse.Status.BAD_REQUEST.getStatusCode(),
 				ErrorMessage.get(ErrorMessageKeys.UNEXPECTED_STATUS));

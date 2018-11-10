@@ -1,6 +1,5 @@
 package org.opengis.cite.iso19142.basic.filter.temporal;
 
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -9,19 +8,15 @@ import javax.xml.transform.dom.DOMSource;
 import org.apache.xerces.xs.XSComplexTypeDefinition;
 import org.apache.xerces.xs.XSElementDeclaration;
 import org.apache.xerces.xs.XSTypeDefinition;
-import org.opengis.cite.geomatics.gml.GmlUtils;
 import org.opengis.cite.geomatics.time.TemporalUtils;
 import org.opengis.cite.iso19142.ErrorMessage;
 import org.opengis.cite.iso19142.ErrorMessageKeys;
 import org.opengis.cite.iso19142.ProtocolBinding;
-import org.opengis.cite.iso19142.basic.filter.QueryFilterFixture;
 import org.opengis.cite.iso19142.util.TimeUtils;
 import org.opengis.cite.iso19142.util.WFSMessage;
-import org.opengis.temporal.Period;
 import org.opengis.temporal.RelativePosition;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.testng.Assert;
-import org.testng.SkipException;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -106,7 +101,7 @@ public class DuringTests extends AbstractTemporalTest {
     void assertDuring(List<Node> temporalNodes, XSElementDeclaration propertyDecl, Document gmlTimeLiteral) {
         Assert.assertFalse(temporalNodes.isEmpty(),
                 String.format("No temporal values found in results: property is %s.", propertyDecl));
-        TemporalGeometricPrimitive t2 = GmlUtils.gmlToTemporalGeometricPrimitive(gmlTimeLiteral.getDocumentElement());
+        TemporalGeometricPrimitive t2 = gmlToTemporalGeometricPrimitive(gmlTimeLiteral.getDocumentElement());
         XSTypeDefinition typeDef = propertyDecl.getTypeDefinition();
         for (Node timeNode : temporalNodes) {
             TemporalGeometricPrimitive t1 = null;
@@ -114,7 +109,7 @@ public class DuringTests extends AbstractTemporalTest {
                 || ( (XSComplexTypeDefinition) typeDef ).getContentType() == XSComplexTypeDefinition.CONTENTTYPE_SIMPLE) {
                 t1 = TemporalQuery.parseTemporalValue(timeNode.getTextContent(), typeDef);
             } else {
-                t1 = GmlUtils.gmlToTemporalGeometricPrimitive((Element) timeNode);
+                t1 = gmlToTemporalGeometricPrimitive((Element) timeNode);
             }
             TemporalUtils.assertTemporalRelation(RelativePosition.DURING, t1, t2);
         }

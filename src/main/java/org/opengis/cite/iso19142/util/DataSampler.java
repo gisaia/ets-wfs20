@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +33,7 @@ import org.apache.xerces.xs.XSComplexTypeDefinition;
 import org.apache.xerces.xs.XSElementDeclaration;
 import org.apache.xerces.xs.XSModel;
 import org.apache.xerces.xs.XSTypeDefinition;
+import org.geotoolkit.temporal.factory.DefaultTemporalFactory;
 import org.opengis.cite.geomatics.Extents;
 import org.opengis.cite.geomatics.gml.GmlUtils;
 import org.opengis.cite.geomatics.time.TemporalComparator;
@@ -44,8 +44,7 @@ import org.opengis.cite.iso19142.ProtocolBinding;
 import org.opengis.cite.iso19142.WFS2;
 import org.opengis.cite.iso19142.basic.filter.temporal.TemporalQuery;
 import org.opengis.geometry.Envelope;
-import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -438,13 +437,47 @@ public class DataSampler {
             }
         }
         if ( period != null ) {
-            TemporalUtils.add( period.getEnding(), 2, ChronoUnit.DAYS );
-            TemporalUtils.add( period.getBeginning(), -2, ChronoUnit.DAYS );
+            TemporalUtils.add( period.getEnding(), 1000, ChronoUnit.MILLIS );
+            TemporalUtils.add( period.getBeginning(), -1000, ChronoUnit.MILLIS );
         }
-        period = TemporalUtils.temporalExtent(tmSet);
+        period = temporalExtent(tmSet);
+
+
+
+
         this.temporalPropertyExtents.put(tmProp, period);
         return period;
     }
+    public static Period temporalExtent(TreeSet<TemporalGeometricPrimitive> tmSet) {
+        if (tmSet.isEmpty()) {
+            throw new IllegalArgumentException("Empty Set<TemporalGeometricPrimitive>");
+        } else {
+            TemporalGeometricPrimitive first = (TemporalGeometricPrimitive)tmSet.first();
+            TemporalGeometricPrimitive last = (TemporalGeometricPrimitive)tmSet.last();
+            Instant startOfPeriod;
+            if (first instanceof Instant) {
+                startOfPeriod = (Instant)Instant.class.cast(first);
+            } else {
+                startOfPeriod = ((Period)Period.class.cast(first)).getBeginning();
+            }
+
+            //startOfPeriod = TemporalUtils.add(startOfPeriod, -1, ChronoUnit.HOURS);
+            Instant endOfPeriod;
+            if (last instanceof Instant) {
+                endOfPeriod = (Instant)Instant.class.cast(last);
+                if (first instanceof Period && endOfPeriod.relativePosition(((Period)Period.class.cast(first)).getEnding()).equals(RelativePosition.BEFORE)) {
+                    endOfPeriod = ((Period)Period.class.cast(first)).getEnding();
+                }
+            } else {
+                endOfPeriod = ((Period)Period.class.cast(last)).getEnding();
+            }
+
+            //endOfPeriod = TemporalUtils.add(endOfPeriod, 1, ChronoUnit.HOURS);
+            TemporalFactory TM_FACTORY = new DefaultTemporalFactory();
+            return TM_FACTORY.createPeriod(startOfPeriod, endOfPeriod);
+        }
+    }
+
 
     /**
      * Determines a property which is nillable and contains nilled properties for the specified feature type in the

@@ -56,9 +56,13 @@ public class TimeUtils {
             return null;
         }
         String beginPosition = startDateTime.format(DateTimeFormatter.ISO_INSTANT);
-        gmlTimePeriod.getElementsByTagNameNS(Namespaces.GML, "beginPosition").item(0).setTextContent(beginPosition);
+        gmlTimePeriod.getElementsByTagNameNS(Namespaces.GML,"timePosition")
+                .item(0)
+                .setTextContent(beginPosition);
         String endPosition = endDateTime.format(DateTimeFormatter.ISO_INSTANT);
-        gmlTimePeriod.getElementsByTagNameNS(Namespaces.GML, "endPosition").item(0).setTextContent(endPosition);
+        gmlTimePeriod.getElementsByTagNameNS(Namespaces.GML,"timePosition")
+                .item(1)
+                .setTextContent(endPosition);
         return gmlTimePeriod;
     }
 

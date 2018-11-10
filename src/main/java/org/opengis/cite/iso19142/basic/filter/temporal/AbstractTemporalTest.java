@@ -1,14 +1,25 @@
 package org.opengis.cite.iso19142.basic.filter.temporal;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
 
 import org.apache.xerces.xs.XSElementDeclaration;
+import org.geotoolkit.temporal.factory.DefaultTemporalFactory;
+import org.geotoolkit.temporal.object.DefaultPosition;
 import org.opengis.cite.iso19142.basic.filter.QueryFilterFixture;
+import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
+import org.opengis.temporal.TemporalFactory;
+import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.testng.SkipException;
+import org.w3c.dom.Element;
 
 /**
  * @author <a href="mailto:goltz@lat-lon.de">Lyn Goltz </a>
@@ -69,6 +80,48 @@ public abstract class AbstractTemporalTest extends QueryFilterFixture {
         public Period getExtent() {
             return extent;
         }
+    }
+
+    public static TemporalGeometricPrimitive gmlToTemporalGeometricPrimitive(Element gmlTime) {
+        List<ZonedDateTime> instants = new ArrayList();
+        String frame = gmlTime.getAttribute("frame");
+        Element timePosition;
+        ZonedDateTime zdt;
+        if (gmlTime.getLocalName().equals("TimeInstant")) {
+            timePosition = (Element)gmlTime.getElementsByTagNameNS("http://www.opengis.net/gml/3.2", "timePosition").item(0);
+            if (!timePosition.getAttribute("frame").isEmpty()) {
+                frame = timePosition.getAttribute("frame");
+            }
+
+            if (!frame.isEmpty() && !frame.contains("8601")) {
+                throw new RuntimeException("Unsupported temporal reference frame: " + frame);
+            }
+
+            try {
+                zdt = ZonedDateTime.parse(timePosition.getTextContent(), DateTimeFormatter.ISO_DATE_TIME);
+                instants.add(zdt);
+            } catch (DateTimeParseException var7) {
+                throw new RuntimeException("Not an ISO instant: " + timePosition.getTextContent());
+            }
+        } else {
+            timePosition = (Element)gmlTime.getElementsByTagNameNS("http://www.opengis.net/gml/3.2", "timePosition").item(0);
+            instants.add(ZonedDateTime.parse(timePosition.getTextContent(), DateTimeFormatter.ISO_DATE_TIME));
+            Element endPosition = (Element)gmlTime.getElementsByTagNameNS("http://www.opengis.net/gml/3.2", "timePosition").item(1);
+            instants.add(ZonedDateTime.parse(endPosition.getTextContent(), DateTimeFormatter.ISO_DATE_TIME));
+        }
+
+        TemporalFactory tmFactory = new DefaultTemporalFactory();
+        zdt = null;
+        Object timePrimitive;
+        if (instants.size() == 1) {
+            timePrimitive = tmFactory.createInstant(new DefaultPosition(Date.from(((ZonedDateTime)instants.get(0)).toInstant())));
+        } else {
+            Instant beginInstant = tmFactory.createInstant(new DefaultPosition(Date.from(((ZonedDateTime)instants.get(0)).toInstant())));
+            Instant endInstant = tmFactory.createInstant(new DefaultPosition(Date.from(((ZonedDateTime)instants.get(1)).toInstant())));
+            timePrimitive = tmFactory.createPeriod(beginInstant, endInstant);
+        }
+
+        return (TemporalGeometricPrimitive)timePrimitive;
     }
 
 }

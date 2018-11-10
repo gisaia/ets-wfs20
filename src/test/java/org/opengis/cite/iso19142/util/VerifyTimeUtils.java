@@ -39,7 +39,7 @@ public class VerifyTimeUtils {
         Instant endPeriod = tmFactory.createInstant(new DefaultPosition(Date.from(t1.plusMonths(1).toInstant())));
         Period period = tmFactory.createPeriod(startPeriod, endPeriod);
         Document doc = TimeUtils.periodAsGML(period);
-        Node endPosition = doc.getElementsByTagNameNS(Namespaces.GML, "endPosition").item(0);
+        Node endPosition = doc.getElementsByTagNameNS(Namespaces.GML, "timePosition").item(1);
         assertTrue("Expected end date 2016-06-03", endPosition.getTextContent().startsWith("2016-06-03"));
     }
 
@@ -50,7 +50,7 @@ public class VerifyTimeUtils {
         Instant endPeriod = tmFactory.createInstant(new DefaultPosition(Date.from(t1.plusMonths(1).toInstant())));
         Period period = tmFactory.createPeriod(startPeriod, endPeriod);
         Document doc = TimeUtils.periodAsGML(period);
-        Node beginPosition = doc.getElementsByTagNameNS(Namespaces.GML, "beginPosition").item(0);
+        Node beginPosition = doc.getElementsByTagNameNS(Namespaces.GML, "timePosition").item(1);
         assertTrue("Expected begin time 17:15:30Z", beginPosition.getTextContent().endsWith("17:15:30Z"));
     }
 
@@ -87,8 +87,8 @@ public class VerifyTimeUtils {
         ZonedDateTime t1 = ZonedDateTime.of(2016, 05, 3, 10, 20, 30, 0, ZoneId.of("Z"));
         ZonedDateTime t2 = ZonedDateTime.of(2017, 05, 3, 0, 0, 0, 0, ZoneId.of("Z"));
         Document doc = TimeUtils.intervalAsGML( t1, t2 );
-        Node beginPosition = doc.getElementsByTagNameNS(Namespaces.GML, "beginPosition").item(0);
-        Node endPosition = doc.getElementsByTagNameNS(Namespaces.GML, "endPosition").item(0);
+        Node beginPosition = doc.getElementsByTagNameNS(Namespaces.GML, "timePosition").item(0);
+        Node endPosition = doc.getElementsByTagNameNS(Namespaces.GML, "timePosition").item(1);
 
         assertEquals("Unexpected date-time", beginPosition.getTextContent().trim(), "2016-05-03T10:20:30Z");
         assertEquals("Unexpected date-time", endPosition.getTextContent().trim(), "2017-05-03T00:00:00Z");
